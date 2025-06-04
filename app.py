@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify
 import mysql.connector
+import os
 
 app = Flask(__name__)
 
 db_config = {
     'host': 'nozomi.proxy.rlwy.net',
     'user': 'root',
-    'password': 'EGLIjTJqpejbrstwenTgAvVyIYAijYnB',  # paste from Railway
+    'password': os.environ.get('RLWY_PASS'),
     'database': 'railway',
     'port': 14254
 }
