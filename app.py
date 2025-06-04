@@ -4,10 +4,11 @@ import mysql.connector
 app = Flask(__name__)
 
 db_config = {
-    'host': 'localhost',  # <- change to Railway/PlanetScale later
+    'host': 'nozomi.proxy.rlwy.net',
     'user': 'root',
-    'password': '',
-    'database': 'ticket_system'
+    'password': 'EGLIjTJqpejbrstwenTgAvVyIYAijYnB',  # paste from Railway
+    'database': 'railway',
+    'port': 14254
 }
 
 @app.route('/get_table_number', methods=['GET'])

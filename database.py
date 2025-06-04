@@ -1,20 +1,21 @@
 import pandas as pd
 import mysql.connector
 
-# Load your CSV
-df = pd.read_csv('/Users/abiolaraji/Downloads/ticket-table-assignment.csv')
+# Load your Excel file
+df = pd.read_excel('/Users/abiolaraji/Downloads/ticket-table-assignments.xlsx')
 
-# Connect to MySQL
+# Connect to Railway MySQL
 conn = mysql.connector.connect(
-    host='localhost',
+    host='nozomi.proxy.rlwy.net',
     user='root',
-    password='',  # Replace if needed
-    database='ticket_system'  # Replace with your DB name
+    password='EGLIjTJqpejbrstwenTgAvVyIYAijYnB',
+    database='railway',
+    port=14254
 )
 
 cursor = conn.cursor()
 
-# Create table (only run once)
+# Create table if it doesn't exist
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS tickets_to_tables (
     Name VARCHAR(100),
