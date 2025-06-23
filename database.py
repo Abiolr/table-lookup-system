@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Load your real CSV file
-df = pd.read_csv('YFC_gala_guest_list.csv')
+df = pd.read_csv('sample.csv')
 
 print(f"📊 Loaded CSV with {len(df)} rows")
 print("Columns:", df.columns.tolist())
