@@ -254,7 +254,7 @@ def search_by_name():
 def home():
     """API documentation endpoint"""
     return jsonify({
-        'message': 'YFC Gala Table Lookup API',
+        'message': 'NCAC Gala Table Lookup API',
         'endpoints': {
             '/get_table_number?ticket=X': 'Get table number for ticket X',
             '/get_ticket_details?ticket=X': 'Get complete details for ticket X',
