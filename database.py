@@ -1,72 +1,52 @@
 import pandas as pd
-import mysql.connector
-import os
-from dotenv import load_dotenv
-load_dotenv()
 
-# Load your real CSV file
-df = pd.read_csv('sample.csv')
+# Path to the ticket -> table mapping CSV, exported from
+# Gala_Guest_Checking_List_formatted.xlsx (Ticket_Table_Lookup sheet).
+# Columns: Ticket_Number, Table_Number
+CSV_PATH = 'tickets_to_tables.csv'
 
-print(f"📊 Loaded CSV with {len(df)} rows")
-print("Columns:", df.columns.tolist())
 
-# Clean column names (remove extra spaces)
-df.columns = df.columns.str.strip()
+def load_data(csv_path=CSV_PATH):
+    """Load the ticket-to-table mapping CSV into a DataFrame."""
+    df = pd.read_csv(csv_path)
+    df.columns = df.columns.str.strip()
+    df['Ticket_Number'] = df['Ticket_Number'].astype(int)
+    df['Table_Number'] = df['Table_Number'].astype(int)
+    return df
 
-# Connect to Railway MySQL
-conn = mysql.connector.connect(
-    host='nozomi.proxy.rlwy.net',
-    user='root',
-    password=os.environ.get('RLWY_PASS'),
-    database='railway',
-    port=14254
-)
 
-cursor = conn.cursor()
+def get_table_number(df, ticket_number):
+    """Return the table number for a given ticket number, or None if not found."""
+    match = df.loc[df['Ticket_Number'] == ticket_number, 'Table_Number']
+    return int(match.iloc[0]) if not match.empty else None
 
-# Drop existing table to start fresh
-cursor.execute("DROP TABLE IF EXISTS tickets_to_tables")
 
-# Create updated table structure matching your CSV
-cursor.execute("""
-CREATE TABLE tickets_to_tables (
-    Serial_Number INT,
-    Table_Number INT,
-    Category VARCHAR(255),
-    Name VARCHAR(255),
-    Ticket_Number INT,
-    PRIMARY KEY (Ticket_Number)
-)
-""")
+def get_table_guests(df, table_number):
+    """Return sorted ticket numbers assigned to a given table."""
+    tickets = df.loc[df['Table_Number'] == table_number, 'Ticket_Number'].sort_values()
+    return tickets.tolist()
 
-print("🗃️ Created fresh table structure")
 
-# Insert all rows from CSV
-success_count = 0
-error_count = 0
+def get_all_tables(df):
+    """Return ticket counts per table, sorted by table number."""
+    counts = df.groupby('Table_Number')['Ticket_Number'].count().sort_index()
+    return [{'table_number': int(table), 'guest_count': int(count)} for table, count in counts.items()]
 
-for index, row in df.iterrows():
-    try:
-        cursor.execute("""
-            INSERT INTO tickets_to_tables (Serial_Number, Table_Number, Category, Name, Ticket_Number)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (
-            row['Serial Number'],
-            row['Table Number'], 
-            row['Category'],
-            row['Name'],
-            int(row['Ticket Number']) if pd.notna(row['Ticket Number']) else None
-        ))
-        success_count += 1
-    except Exception as e:
-        print(f"❌ Error inserting row {index}: {e}")
-        print(f"   Row data: {row.to_dict()}")
-        error_count += 1
 
-conn.commit()
-conn.close()
+def get_database_stats(df):
+    """Return overall stats about the ticket-to-table mapping."""
+    return {
+        'total_tickets': int(len(df)),
+        'total_tables': int(df['Table_Number'].nunique()),
+        'ticket_range': {
+            'min': int(df['Ticket_Number'].min()),
+            'max': int(df['Ticket_Number'].max())
+        }
+    }
 
-print(f"✅ Upload complete!")
-print(f"   Successfully inserted: {success_count} rows")
-print(f"   Errors: {error_count} rows")
-print(f"   Total processed: {success_count + error_count} rows")
+
+if __name__ == '__main__':
+    # Quick sanity check when run directly
+    data = load_data()
+    print(f"📊 Loaded {len(data)} ticket-to-table mappings from {CSV_PATH}")
+    print(get_database_stats(data))
