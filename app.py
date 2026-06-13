@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import database
 
 app = Flask(__name__)
+CORS(app)
 
 # Load the ticket -> table mapping once at startup
 df = database.load_data()
